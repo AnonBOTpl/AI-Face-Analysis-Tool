@@ -20,7 +20,7 @@ Skrypt:
 ## 📦 Instalacja ręczna
 1. Sklonuj repozytorium:
    ```bash
-   git clone https://github.com/yourusername/face-analyzer.git
+   git clone https://github.com/git clone https://github.com/AnonBOTpl/AI-Face-Analysis-Tool
    cd face-analyzer
    ```
 
