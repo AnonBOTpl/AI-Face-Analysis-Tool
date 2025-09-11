@@ -59,3 +59,6 @@ python analyze_face.py
 1. Choose the **face detector**.  
 2. Select an image (`.jpg`, `.jpeg`, `.png`, `.bmp`).  
 3. Results will be shown in the terminal and in a window with the processed image.
+
+   About: This project is intended for educational/demo purposes. The predictions may not always be accurate, especially in challenging lighting conditions or with small/low-resolution images.
+   
