@@ -1,3 +1,13 @@
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8%2B-blue" />
+  <img src="https://img.shields.io/badge/DeepFace-Enabled-green" />
+  <img src="https://img.shields.io/badge/OpenCV-Analysis-orange" />
+  <img src="https://img.shields.io/badge/GUI-Tkinter-lightgrey" />
+</p>
+
+# AI Face Analysis Tool
+*A Python GUI app for face analysis (age, gender, race, emotions) using DeepFace and OpenCV.*
+
 # Face Analysis with DeepFace
 
 This project is a simple desktop application for analyzing faces in images using [DeepFace](https://github.com/serengil/deepface).  
