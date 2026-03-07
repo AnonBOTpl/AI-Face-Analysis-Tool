@@ -16,7 +16,8 @@ def main():
     print("🔍 Checking required packages...")
     for pkg in REQUIRED:
         try:
-            __import__(pkg.split("-")[0])  # np. 'opencv-python' -> 'opencv'
+            import_name = "cv2" if pkg == "opencv-python" else pkg.split("-")[0]
+            __import__(import_name)  # np. 'opencv-python' -> 'cv2'
             print(f"✅ {pkg} already installed")
         except ImportError:
             print(f"⬇️ Installing {pkg}...")
