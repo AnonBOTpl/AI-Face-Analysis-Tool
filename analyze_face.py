@@ -161,143 +161,151 @@ def choose_detector():
         return None
 
 # ------------------ Główna część programu ------------------
-print("🚀 Uruchamianie programu...")
+def main():
+    print("🚀 Uruchamianie programu...")
 
-selected_detector = choose_detector()
-if not selected_detector:
-    print(T["no_detector"])
-    sys.exit(0)
-
-print(T["selected_detector"].format(det=selected_detector))
-
-root = tk.Tk()
-root.withdraw()
-img_path = filedialog.askopenfilename(
-    title=T["file_dialog_title"],
-    filetypes=[("Images", "*.jpg *.jpeg *.png *.bmp")]
-)
-root.destroy()
-
-if not img_path:
-    print(T["no_file"])
-    sys.exit(0)
-
-print(T["file_selected"].format(file=img_path))
-
-ext = os.path.splitext(img_path)[1]
-tmp_path = os.path.join(tempfile.gettempdir(), f"tmp_img_{uuid.uuid4().hex}{ext}")
-
-try:
-    shutil.copy2(img_path, tmp_path)
-except Exception as e:
-    print(T["copy_fail"], e)
-    sys.exit(1)
-
-try:
-    print(T["analyzing"])
-    results = DeepFace.analyze(
-        img_path=tmp_path,
-        actions=['age', 'gender', 'race', 'emotion'],
-        detector_backend=selected_detector,
-        enforce_detection=False
-    )
-
-    if isinstance(results, dict):
-        results = [results]
-
-    if not results:
-        print(T["no_faces"])
+    selected_detector = choose_detector()
+    if not selected_detector:
+        print(T["no_detector"])
         sys.exit(0)
 
-    print(T["faces_detected"].format(n=len(results)))
+    print(T["selected_detector"].format(det=selected_detector))
 
-    rows = []
-    for idx, r in enumerate(results):
-        print(T["face"].format(i=idx+1))
+    root = tk.Tk()
+    root.withdraw()
+    img_path = filedialog.askopenfilename(
+        title=T["file_dialog_title"],
+        filetypes=[("Images", "*.jpg *.jpeg *.png *.bmp")]
+    )
+    root.destroy()
 
-        age = r.get("age", None)
-        age_text = f"{int(age)-3}-{int(age)+3}" if age is not None else "?"
+    if not img_path:
+        print(T["no_file"])
+        sys.exit(0)
 
-        print(T["age"].format(age=int(age) if age else "N/A", range=age_text))
+    print(T["file_selected"].format(file=img_path))
 
-        gender_data = r.get("gender", {})
-        if isinstance(gender_data, dict):
-            woman_conf = gender_data.get('Woman', 0)
-            man_conf = gender_data.get('Man', 0)
-            print(T["gender"].format(w=woman_conf, m=man_conf))
+    ext = os.path.splitext(img_path)[1]
 
-        race_data = r.get("race", {})
-        if isinstance(race_data, dict):
-            print(T["race"])
-            sorted_races = sorted(race_data.items(), key=lambda x: x[1], reverse=True)[:3]
-            for race, conf in sorted_races:
-                print(f"     {race}: {conf:.1f}%")
+    # Use secure temporary file creation
+    import tempfile
+    fd, tmp_path = tempfile.mkstemp(suffix=ext, prefix="tmp_img_")
+    os.close(fd)
 
-        emotion_data = r.get("emotion", {})
-        if isinstance(emotion_data, dict):
-            print(T["emotion"])
-            sorted_emotions = sorted(emotion_data.items(), key=lambda x: x[1], reverse=True)[:3]
-            for emotion, conf in sorted_emotions:
-                print(f"     {emotion}: {conf:.1f}%")
-
-        if age and age < 16:
-            print(T["child_warning"].format(age=int(age)))
-
-        rows.append({
-            "Age": age_text,
-            "Gender": r.get("dominant_gender", ""),
-            "Race": r.get("dominant_race", ""),
-            "Emotion": r.get("dominant_emotion", "")
-        })
-
-    df = pd.DataFrame(rows)
-    print(T["summary"])
-    print(df.to_string(index=False))
-
-    img = cv2.imread(tmp_path)
-    if img is None:
-        print(T["image_fail"])
+    try:
+        shutil.copy2(img_path, tmp_path)
+    except Exception:
+        print(T["copy_fail"])
         sys.exit(1)
 
-    h_img, w_img = img.shape[:2]
-    colors = [(0,255,0),(255,0,0),(0,0,255),(255,255,0),(255,0,255),(0,255,255),(128,128,0),(128,0,128)]
-
-    for idx, r in enumerate(results):
-        region = r.get("region", {})
-        x = int(region.get("x", 0))
-        y = int(region.get("y", 0))
-        w = int(region.get("w", 0))
-        h = int(region.get("h", 0))
-
-        x = max(0, min(x, w_img - 1))
-        y = max(0, min(y, h_img - 1))
-        w = max(1, min(w, w_img - x))
-        h = max(1, min(h, h_img - y))
-
-        color = colors[idx % len(colors)]
-        cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
-
-        age = r.get("age", None)
-        age_text = f"{int(age)-3}-{int(age)+3}" if age is not None else "?"
-
-        label = f"#{idx+1}: {r.get('dominant_gender','')}, {age_text}, {r.get('dominant_race','')}, {r.get('dominant_emotion','')}"
-        cv2.putText(img, label, (x, y-10 if y-10>10 else y+h+20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2, cv2.LINE_AA)
-
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    plt.figure(figsize=(12, 8))
-    plt.imshow(img_rgb)
-    plt.axis("off")
-    plt.title(T["plot_title"].format(det=selected_detector))
-    plt.show()
-
-except Exception:
-    traceback.print_exc()
-finally:
     try:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
-    except Exception:
-        pass
+        print(T["analyzing"])
+        results = DeepFace.analyze(
+            img_path=tmp_path,
+            actions=['age', 'gender', 'race', 'emotion'],
+            detector_backend=selected_detector,
+            enforce_detection=False
+        )
 
-print(T["finished"])
+        if isinstance(results, dict):
+            results = [results]
+
+        if not results:
+            print(T["no_faces"])
+            sys.exit(0)
+
+        print(T["faces_detected"].format(n=len(results)))
+
+        rows = []
+        for idx, r in enumerate(results):
+            print(T["face"].format(i=idx+1))
+
+            age = r.get("age", None)
+            age_text = f"{int(age)-3}-{int(age)+3}" if age is not None else "?"
+
+            print(T["age"].format(age=int(age) if age else "N/A", range=age_text))
+
+            gender_data = r.get("gender", {})
+            if isinstance(gender_data, dict):
+                woman_conf = gender_data.get('Woman', 0)
+                man_conf = gender_data.get('Man', 0)
+                print(T["gender"].format(w=woman_conf, m=man_conf))
+
+            race_data = r.get("race", {})
+            if isinstance(race_data, dict):
+                print(T["race"])
+                sorted_races = sorted(race_data.items(), key=lambda x: x[1], reverse=True)[:3]
+                for race, conf in sorted_races:
+                    print(f"     {race}: {conf:.1f}%")
+
+            emotion_data = r.get("emotion", {})
+            if isinstance(emotion_data, dict):
+                print(T["emotion"])
+                sorted_emotions = sorted(emotion_data.items(), key=lambda x: x[1], reverse=True)[:3]
+                for emotion, conf in sorted_emotions:
+                    print(f"     {emotion}: {conf:.1f}%")
+
+            if age and age < 16:
+                print(T["child_warning"].format(age=int(age)))
+
+            rows.append({
+                "Age": age_text,
+                "Gender": r.get("dominant_gender", ""),
+                "Race": r.get("dominant_race", ""),
+                "Emotion": r.get("dominant_emotion", "")
+            })
+
+        df = pd.DataFrame(rows)
+        print(T["summary"])
+        print(df.to_string(index=False))
+
+        img = cv2.imread(tmp_path)
+        if img is None:
+            print(T["image_fail"])
+            sys.exit(1)
+
+        h_img, w_img = img.shape[:2]
+        colors = [(0,255,0),(255,0,0),(0,0,255),(255,255,0),(255,0,255),(0,255,255),(128,128,0),(128,0,128)]
+
+        for idx, r in enumerate(results):
+            region = r.get("region", {})
+            x = int(region.get("x", 0))
+            y = int(region.get("y", 0))
+            w = int(region.get("w", 0))
+            h = int(region.get("h", 0))
+
+            x = max(0, min(x, w_img - 1))
+            y = max(0, min(y, h_img - 1))
+            w = max(1, min(w, w_img - x))
+            h = max(1, min(h, h_img - y))
+
+            color = colors[idx % len(colors)]
+            cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
+
+            age = r.get("age", None)
+            age_text = f"{int(age)-3}-{int(age)+3}" if age is not None else "?"
+
+            label = f"#{idx+1}: {r.get('dominant_gender','')}, {age_text}, {r.get('dominant_race','')}, {r.get('dominant_emotion','')}"
+            cv2.putText(img, label, (x, y-10 if y-10>10 else y+h+20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2, cv2.LINE_AA)
+
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        plt.figure(figsize=(12, 8))
+        plt.imshow(img_rgb)
+        plt.axis("off")
+        plt.title(T["plot_title"].format(det=selected_detector))
+        plt.show()
+
+    except Exception:
+        print("❌ Wystąpił błąd podczas analizy.")
+    finally:
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except Exception:
+            pass
+
+    print(T["finished"])
+
+if __name__ == "__main__":
+    main()

@@ -7,9 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from PIL import Image, ImageTk
-import pandas as pd
 import tempfile
-import shutil
 import os
 import uuid
 import locale
@@ -90,7 +88,6 @@ class FaceApp:
         self.detector_var = tk.StringVar(value='opencv')
         self.img_path = None
         self.img_panel = None
-        self.df = None
         self.result_img = None
 
         # Detector selection
@@ -190,15 +187,21 @@ class FaceApp:
 
     def _analyze_worker(self, detector_backend, actions):
         ext = os.path.splitext(self.img_path)[1]
-        tmp_path = os.path.join(tempfile.gettempdir(), f"tmp_img_{uuid.uuid4().hex}{ext}")
+
+        # Use secure temporary file creation
+        fd, tmp_path = tempfile.mkstemp(suffix=ext, prefix="tmp_img_")
+        os.close(fd)
+
         try:
-            pil_img = Image.open(self.img_path).convert("RGB")
-            pil_img.save(tmp_path)
+            # More efficient direct copy
+            import shutil
+            shutil.copy2(self.img_path, tmp_path)
         except Exception as e:
-            err_msg = str(e)
-            self.master.after(0, lambda: messagebox.showerror("Error", f"{T['image_fail']}\n{err_msg}"))
+            # Only show generic error to avoid information exposure
+            self.master.after(0, lambda: messagebox.showerror("Error", f"{T['image_fail']}"))
             self._hide_progress()
             return
+
         try:
             results = DeepFace.analyze(
                 img_path=tmp_path,
@@ -259,10 +262,9 @@ class FaceApp:
                 self.img_panel.image = self.result_img
                 self._hide_progress()
             self.master.after(0, update_results)
-        except Exception as e:
-            err_msg = str(e)
-            traceback.print_exc()
-            self.master.after(0, lambda: messagebox.showerror("Error", err_msg))
+        except Exception:
+            # Sanitize exception handling to not expose full stack traces
+            self.master.after(0, lambda: messagebox.showerror("Error", "Wystąpił błąd podczas analizy obrazu."))
             self._hide_progress()
         finally:
             try:
@@ -276,11 +278,7 @@ class FaceApp:
         self.progressbar.pack_forget()
         self.progress_label.config(text="")
 
-    def run(self):
-        pass  # Usunięto menu wyboru trybu, aplikacja działa jak wcześniej
-
 if __name__ == "__main__":
     root = tk.Tk()
     app = FaceApp(root)
-    app.run()
     root.mainloop()

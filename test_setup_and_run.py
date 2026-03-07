@@ -36,3 +36,15 @@ class TestSetupAndRun(unittest.TestCase):
 
         # Verify subprocess.check_call was called to run analyze_face.py
         mock_check_call.assert_called_once_with([sys.executable, "analyze_face.py"])
+
+    @patch('setup_and_run.subprocess.check_call')
+    @patch('setup_and_run.install')
+    @patch('builtins.__import__')
+    def test_main_all_installed(self, mock_import, mock_install, mock_check_call):
+        # Everything installed
+        mock_import.return_value = MagicMock()
+
+        setup_and_run.main()
+
+        mock_install.assert_not_called()
+        mock_check_call.assert_called_once_with([sys.executable, "analyze_face.py"])
