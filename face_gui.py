@@ -3,13 +3,8 @@ import tkinter as tk
 from tkinter import filedialog, ttk, messagebox
 from deepface import DeepFace
 import cv2
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 from PIL import Image, ImageTk
-import pandas as pd
 import tempfile
-import shutil
 import os
 import uuid
 import locale
@@ -90,7 +85,6 @@ class FaceApp:
         self.detector_var = tk.StringVar(value='opencv')
         self.img_path = None
         self.img_panel = None
-        self.df = None
         self.result_img = None
 
         # Detector selection
