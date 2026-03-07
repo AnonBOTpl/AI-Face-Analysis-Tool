@@ -156,7 +156,7 @@ def choose_detector():
         else:
             return result['detector']
 
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
         return None
 
@@ -291,7 +291,7 @@ try:
     plt.title(T["plot_title"].format(det=selected_detector))
     plt.show()
 
-except Exception as e:
+except Exception:
     traceback.print_exc()
 finally:
     try:

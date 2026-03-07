@@ -195,7 +195,8 @@ class FaceApp:
             pil_img = Image.open(self.img_path).convert("RGB")
             pil_img.save(tmp_path)
         except Exception as e:
-            self.master.after(0, lambda: messagebox.showerror("Error", f"{T['image_fail']}\n{e}"))
+            err_msg = str(e)
+            self.master.after(0, lambda: messagebox.showerror("Error", f"{T['image_fail']}\n{err_msg}"))
             self._hide_progress()
             return
         try:
@@ -259,8 +260,9 @@ class FaceApp:
                 self._hide_progress()
             self.master.after(0, update_results)
         except Exception as e:
+            err_msg = str(e)
             traceback.print_exc()
-            self.master.after(0, lambda: messagebox.showerror("Error", str(e)))
+            self.master.after(0, lambda: messagebox.showerror("Error", err_msg))
             self._hide_progress()
         finally:
             try:
