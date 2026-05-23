@@ -1,0 +1,14 @@
+PyQt6>=6.5
+mediapipe>=0.10
+insightface>=0.7
+onnxruntime-gpu>=1.15
+opencv-python>=4.8
+Pillow>=10
+numpy>=1.24
+transformers>=4.36
+huggingface_hub>=0.20
+torch>=2.0
+torchvision>=0.15
+pandas>=2.0
+matplotlib>=3.7
+scikit-learn>=1.3
