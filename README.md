@@ -71,6 +71,22 @@ python -m src.main
 | Emotion | ConvNeXt V2 Large (HuggingFace) |
 | GPU | CUDA 12.8, ONNX Runtime, PyTorch 2.7 |
 
+## Differences from v1
+
+| Feature | v1 (Tkinter + DeepFace) | v2 (PyQt6 + MediaPipe + InsightFace) |
+|---|---|---|
+| GUI | Tkinter | PyQt6 (dark theme, tabs) |
+| Face Detection | DeepFace (OpenCV/SSD/MTCNN) | MediaPipe BlazeFace / InsightFace RetinaFace |
+| Age + Gender | DeepFace (TensorFlow) | MiVOLO v2 / FaceAge ClientScan (MAE 3.5–4.2) |
+| Emotion | DeepFace (TensorFlow) | ConvNeXt V2 Large (97.8% acc, PyTorch + CUDA) |
+| Face Alignment | ❌ | ✅ MediaPipe FaceMesh (468 landmarks) |
+| GPU | ❌ TensorFlow on CPU | ✅ CUDA 12+ (GTX 1060+) |
+| Webcam | ❌ | ✅ |
+| Batch Processing | ❌ | ✅ |
+| Export CSV/JSON | ❌ | ✅ |
+| Drag & Drop | ❌ | ✅ |
+| VRAM Management | ❌ | ✅ torch.cuda.empty_cache() between analyses |
+
 ## Project Structure
 
 ```
